@@ -1,0 +1,93 @@
+.sidebar{
+    height: 100%;
+    width: 0px;
+    position: fixed;
+    z-index: 1;
+    top: 0;
+    left: 0;
+    background-color: #17a2b8;
+    overflow-x: hidden;
+    transition: 0.5s;
+    padding-top: 60px;
+    display: inline-block !important;
+}
+.sidebar .closebtn {
+    position: absolute;
+    top: 0;
+    right: 25px;
+    font-size: 20px;
+    margin-left: 50px;
+}
+.sidebar a{
+    padding: 8px 8px 8px 32px;
+    text-decoration: none;
+    font-size: 20px;
+    color: #ffffff;
+    display: block;
+    transition: 0.3s;
+}
+.main-container{
+    width: 100%;
+    padding: 0px;
+}
+.main{
+    transition: 0.5s;
+}
+.header{
+    background-color: #343a40;
+    height: 65px;
+    padding-left: 20px;
+    padding-top: 8px;
+    color: #ffffff;
+    font-size: 26px;
+    position: fixed;
+    width:100%;
+    z-index: 10;
+}
+.contents{
+    margin: 20px;
+    width: 96.5%;
+    height: 600px;
+    display: inline-block;
+    margin-left: 20px;
+    margin-top:80px;
+}
+.btn-add-contact{
+    right: 20px;
+    position: absolute;
+    display: block;
+    height: 80px;
+}
+.schedule-contacts{
+    border: 0px solid black;
+    border-radius: 5px;
+    width: 100%;
+    margin-top: 50px;
+    right: 20px;
+    position: relative;
+    text-align: center
+}
+.schedule-contacts-element{
+    width: 250px;
+    border: 1px solid #6c757d;
+    display: inline-block;
+    margin: 20px 20px 20px 10px;
+    border-radius: 5px;
+    text-align: center;
+}
+.schedule-contacts-element-content{
+    border: 1px solid #f8f9fa;
+    width: 100%;
+    display: inline-block;
+    padding: 2%;
+    border-radius: 5px;
+    text-align: left;
+    height: 500px;
+    background-color: #ffffff;
+}
+body{
+    background-color: #f8f9fa;
+}
+#schedule{
+    display: none;
+}
