@@ -1,3 +1,58 @@
+var gmsApp = angular.module('gmsApp',['contactForm']);
+gmsApp.controller('gmsAppController', function($scope,$compile){
+    $scope.value = 'Pronow';
+    
+    $scope.contacts = [];
+    
+    $scope.divCounter = 0;
+
+    $scope.addContact = function(){
+        if( $scope.divCounter < 5 )
+        {
+            var newContactWrapper = $scope.contact();
+            $scope.contacts.push( newContactWrapper );
+            $scope.createContact('div-' + $scope.divCounter);
+            $scope.divCounter++;
+        }
+    }
+    
+    $scope.createContact = function(divId){
+        var div = document.createElement('div');
+        div.className = 'schedule-contacts-element';
+        div.id = divId;
+        var innerDiv = document.createElement('div');
+        innerDiv.id = "inner-" + divId;
+        innerDiv.className = 'schedule-contacts-element-content';
+        innerDiv.draggable = true;
+        innerDiv.setAttribute('ondragstart', 'drag(event)');
+        $scope.contactWrapper = JSON.stringify($scope.contacts[$scope.divCounter].contact);
+
+        var newElement = $compile('<contact-form contact="contactWrapper"/>')($scope);
+        //$scope.$apply();
+        //innerDiv.appendChild();
+        div.appendChild(innerDiv);
+        angular.element(innerDiv).append(newElement);
+        div.setAttribute('ondragover', "allowDrop(event)");
+        div.setAttribute('ondrop', "drop(event)");
+        document.getElementById('schedule-contacts').appendChild(div);
+    }
+
+    $scope.contact = function(){
+        var contact = {};
+        contact.Id = '123';
+        contact.FirstName = '';
+        contact.Lastname = '';
+        var timeZone = {};
+        timeZone.Id = '';
+        timeZone.Name = '';
+        var contactWrapper = {};
+        contactWrapper.contact = contact;
+        contactWrapper.timeZone = timeZone;
+        return contactWrapper;
+    }
+});
+
+
 var openDiv = function (divId) {
     document.getElementById(divId).style.display = 'inline-block';
 }
@@ -15,7 +70,7 @@ var addContact = function () {
 var removeContact = function () {
 
 }
-var createContact = function (divId) {
+var createContact = async function (divId) {
     var div = document.createElement('div');
     div.className = 'schedule-contacts-element';
     div.id = divId;
@@ -23,8 +78,8 @@ var createContact = function (divId) {
     innerDiv.id = "inner-" + divId;
     innerDiv.className = 'schedule-contacts-element-content';
     innerDiv.draggable = true;
-    innerDiv.innerHTML = '<p>' + divId + '</div>';
     innerDiv.setAttribute('ondragstart', 'drag(event)');
+    innerDiv.innerHTML = await readContactHTML();
     div.appendChild(innerDiv);
     div.setAttribute('ondragover', "allowDrop(event)");
     div.setAttribute('ondrop', "drop(event)");
@@ -62,4 +117,17 @@ var drop = function (event) {
         destinationElementParent.appendChild(sourceElement);
         sourceElementParent.appendChild(destinationElement);
     }
+}
+
+var readContactHTML = function(){
+    var htmlFile = new XMLHttpRequest();
+    htmlFile.open('GET', 'contact.html',true);
+    htmlFile.onreadystatechange = function(){
+        if( htmlFile.readyState === 4 ){
+            if( htmlFile.status === 200 || htmlFile.status == 0 ){
+                htmlFile.send(htmlFile.responseText);
+            }
+        }
+    }
+    // htmlFile.send(htmlFile.responseText);
 }

@@ -5,6 +5,8 @@
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <link rel="stylesheet" href="vendor_css/bootstrap/css/bootstrap.min.css"></link>
     <link rel="stylesheet" href="application_css/gms.css"></link>
+    <script src="vendor_js/angular_js/angular.min.js"></script>
+    <script src="application_js/contact-form.js"></script>
     <script src="application_js/application.js"></script>
     <script>
         function openNav() {
@@ -20,7 +22,8 @@
 </head>
 
 <body>
-    <div class="main-container">
+    <div class="main-container" ng-app="gmsApp" ng-controller="gmsAppController">
+            
         <div class="sidebar" id="mySidenav">
             <a href="javascript:void(0)" class="closebtn" style="font-size:30px;cursor:pointer" onclick="closeNav()">&times;</a>
             <a href="#" onclick="openDiv('contacts');closeDiv('schedule');">Contacts</a>
@@ -33,10 +36,10 @@
             <div id="contacts" class="contents">
                 <h1>Schedule a meeting</h1>
                 <div class="btn-add-contact">
-                    <button class="btn btn-primary" onclick="addContact();">Add a Contact</button>
+                    <button class="btn btn-primary" ng-click="addContact()">Add a Contact</button>
                 </div>
                 <div id="schedule-contacts" class="schedule-contacts">
-                    
+                    {{value}}
                 </div>
             </div>
             <div id="schedule" class="contents">
