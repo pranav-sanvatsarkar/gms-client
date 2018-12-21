@@ -1,10 +1,46 @@
 var gmsApp = angular.module('gmsApp', ['contactForm']);
 gmsApp.controller('gmsAppController', function ($rootScope, $scope, $compile) {
 
+    $scope.arrContacts = [];
+    $scope.indexChanged = -1;
+    $scope.updateArrContacts = function (indexToSkip) {
+        for (var index = 0; index < $scope.arrContacts.length; index++) {
+            if ($scope.arrContacts[index].contact.Index != indexToSkip) {
+                if ($scope.arrContacts[index].timezone.Id === $scope.arrContacts[indexToSkip].timezone.Id)
+                    $scope.arrContacts[index].dateTime = $scope.arrContacts[indexToSkip].dateTime;
+                else {
+                    var sourceDateTimeGMT = $scope.getGMTDateTime($scope.arrContacts[indexToSkip].dateTime, $scope.arrContacts[indexToSkip].timezone.GMT_Offset_in_Minutes__c);
+                    var destinationDateTime = new Date(sourceDateTimeGMT.valueOf() + (60000 * $scope.arrContacts[index].timezone.GMT_Offset_in_Minutes__c));
+                    $scope.arrContacts[index].dateTime = $scope.getFullDateToDateTime(destinationDateTime);
+                }
+            }
+        }
+    }
+
+    $scope.getGMTDateTime = function (dateTime, timeZoneOffSet) {
+        if( dateTime.meridiem == 'AM' && dateTime.hours == 12 )
+            dateTime.hours = 0;
+        var hours = dateTime.meridiem == 'PM' ? dateTime.hours + 12 : dateTime.hours;
+        var dateTimeFull = new Date(dateTime.date.split('-')[0], (dateTime.date.split('-')[1]-1), dateTime.date.split('-')[2], hours, dateTime.minutes);
+        var gmtDateTimeFull = new Date(dateTimeFull.valueOf() - (60000 * timeZoneOffSet));
+        return gmtDateTimeFull;
+    }
+
+    $scope.getFullDateToDateTime = function (fullDate) {
+        var dateTime = {};
+        dateTime.date = fullDate.getFullYear() + '-' + (fullDate.getMonth() + 1) + '-' + fullDate.getDate();
+        dateTime.hours = fullDate.getHours() > 12 ? fullDate.getHours() - 12 : fullDate.getHours();
+        dateTime.minutes = fullDate.getMinutes();
+        dateTime.meridiem = (fullDate.getHours() > 12 ? 'PM' : 'AM');
+        if( dateTime.meridiem == 'AM' && dateTime.hours == 0 )
+            dateTime.hours = 12;
+        return dateTime;
+    }
+
     $rootScope.contacts = [];
     $rootScope.coordinatedTime = {};
     $rootScope.coordinatedTime.timezone = {};
-    
+
     $rootScope.defaulTimezone = {};
     $rootScope.defaulTimezone.Name = 'Greenwich Mean Time / Coordinated Universal Time';
     $rootScope.defaulTimezone.Short_Name__c = 'GMT';
@@ -19,28 +55,19 @@ gmsApp.controller('gmsAppController', function ($rootScope, $scope, $compile) {
     $rootScope.coordinatedTime.timezone.Region__c = 'India';
     $rootScope.coordinatedTime.timezone.City_or_State__c = '';
     $rootScope.coordinatedTime.timezone.Country__c = '';
-    $rootScope.coordinatedTime.timezone.GMT_Offset_in_Minutes__c = -330;
+    $rootScope.coordinatedTime.timezone.GMT_Offset_in_Minutes__c = 330;
     $rootScope.coordinatedTime.timezone.Type__c = 'Standard Time';
     $rootScope.coordinatedTime.timezone.Id = 'a001000001dTgUv';
 
     $rootScope.coordinatedTime.dateTime = new Date();
-    // $rootScope.coordinatedTime.date = new Date();
-
-    $rootScope.$watch('coordinatedTime', function (newValue) {
-        var gmtDateTime = new Date( newValue.dateTime.valueOf() + ( 60000 * newValue.timezone.GMT_Offset_in_Minutes__c ) );
-        for( var index = 0; index < $rootScope.contacts.length; index ++ )
-        {
-            
-        }
-    },true);
-
     $scope.divCounter = 0;
 
     $scope.addContact = function () {
         if ($scope.divCounter < 5) {
-            var newContactWrapper = $scope.contact();
-            $rootScope.contacts.push(newContactWrapper);
+            var contact = $scope.contact();
             $scope.createContact($scope.divCounter);
+            $scope.arrContacts.push(contact);
+            //$rootScope.contacts.push(contact);
             $scope.divCounter++;
         }
     }
@@ -52,13 +79,13 @@ gmsApp.controller('gmsAppController', function ($rootScope, $scope, $compile) {
         var innerDiv = document.createElement('div');
         innerDiv.id = "inner-div-" + divId;
         innerDiv.className = 'schedule-contacts-element-content';
-        innerDiv.draggable = true;
-        innerDiv.setAttribute('ondragstart', 'drag(event)');
-        var newElement = $compile('<contact-form contact-id="' + divId + '"/>')($scope);
+        // innerDiv.draggable = true;
+        //innerDiv.setAttribute('ondragstart', 'drag(event)');
+        var newElement = $compile('<contact-form contact-id="' + divId + '" contact="arrContacts[' + divId + ']"/>')($scope);
         div.appendChild(innerDiv);
         angular.element(innerDiv).append(newElement);
-        div.setAttribute('ondragover', "allowDrop(event)");
-        div.setAttribute('ondrop', "drop(event)");
+        // div.setAttribute('ondragover', "allowDrop(event)");
+        // div.setAttribute('ondrop', "drop(event)");
         document.getElementById('schedule-contacts').appendChild(div);
     }
 
@@ -66,27 +93,9 @@ gmsApp.controller('gmsAppController', function ($rootScope, $scope, $compile) {
         var contact = {};
         contact.Id = '123';
         contact.Name = '';
+        contact.Index = $scope.divCounter;
 
-        // var timezone = {};
-        // timezone.Name = 'India Standard Time / India Time';
-        // timezone.Short_Name__c = 'IST';
-        // timezone.Region__c = 'India';
-        // timezone.City_or_State__c = '';
-        // timezone.Country__c = '';
-        // timezone.GMT_Offset_in_Minutes__c = -330;
-        // timezone.Type__c = 'Standard Time';
-        // timezone.Id = 'a001000001dTgUv';
-
-        // var time = {};
-        // var today = new Date();
-        // time.hours = ( today.getHours() > 12 ? today.getHours() - 12 : today.getHours());
-        // if( today.getHours() > 12 )
-        //     time.meridiem = 'PM';
-        // else
-        //     time.meridiem = 'AM';
-        // time.minutes = today.getMinutes();
-        // time.date = today.getFullYear() + '-' +  ( today.getMonth() + 1 ) + '-' + today.getDate();
-        // time.fullDate = new Date(today.getFullYear(), today.getMonth(), today.getDate());
+        //$scope.arrContacts.push(contact);
 
         var contactWrapper = {};
         contactWrapper.contact = contact;
@@ -159,72 +168,73 @@ var openDiv = function (divId) {
 var closeDiv = function (divId) {
     document.getElementById(divId).style.display = 'none';
 }
-var divCount = 0;
-var addContact = function () {
-    if (divCount < 5) {
-        createContact('div-' + divCount);
-        divCount++;
-    }
-}
-var removeContact = function () {
 
-}
-var createContact = async function (divId) {
-    var div = document.createElement('div');
-    div.className = 'schedule-contacts-element';
-    div.id = divId;
-    var innerDiv = document.createElement('div');
-    innerDiv.id = "inner-" + divId;
-    innerDiv.className = 'schedule-contacts-element-content';
-    innerDiv.draggable = true;
-    innerDiv.setAttribute('ondragstart', 'drag(event)');
-    innerDiv.innerHTML = await readContactHTML();
-    div.appendChild(innerDiv);
-    div.setAttribute('ondragover', "allowDrop(event)");
-    div.setAttribute('ondrop', "drop(event)");
-    document.getElementById('schedule-contacts').appendChild(div);
-}
+// var divCount = 0;
+// var addContact = function () {
+//     if (divCount < 5) {
+//         createContact('div-' + divCount);
+//         divCount++;
+//     }
+// }
+// var removeContact = function () {
+
+// }
+// var createContact = async function (divId) {
+//     var div = document.createElement('div');
+//     div.className = 'schedule-contacts-element';
+//     div.id = divId;
+//     var innerDiv = document.createElement('div');
+//     innerDiv.id = "inner-" + divId;
+//     innerDiv.className = 'schedule-contacts-element-content';
+//     innerDiv.draggable = true;
+//     innerDiv.setAttribute('ondragstart', 'drag(event)');
+//     innerDiv.innerHTML = await readContactHTML();
+//     div.appendChild(innerDiv);
+//     div.setAttribute('ondragover', "allowDrop(event)");
+//     div.setAttribute('ondrop', "drop(event)");
+//     document.getElementById('schedule-contacts').appendChild(div);
+// }
 
 
-var allowDrop = function (event) {
-    event.preventDefault();
-}
+// var allowDrop = function (event) {
+//     event.preventDefault();
+// }
 
-var drag = function (event) {
-    event.dataTransfer.setData('sourceId', event.target.id);
-}
+// var drag = function (event) {
+//     event.dataTransfer.setData('sourceId', event.target.id);
+// }
 
-var drop = function (event) {
-    event.preventDefault();
-    var elementToMove;
+// var drop = function (event) {
+//     event.preventDefault();
+//     var elementToMove;
 
-    var sourceId = event.dataTransfer.getData('sourceId');
-    var sourceElement = document.getElementById(sourceId);
-    var sourceElementParent = sourceElement.parentElement;
+//     var sourceId = event.dataTransfer.getData('sourceId');
+//     var sourceElement = document.getElementById(sourceId);
+//     var sourceElementParent = sourceElement.parentElement;
 
-    var destinationId = event.target.id;
-    var destinationElement = event.target;
-    var destinationElementParent = destinationElement.parentElement;
+//     var destinationId = event.target.id;
+//     var destinationElement = event.target;
+//     var destinationElementParent = destinationElement.parentElement;
 
-    if (destinationElement.draggable == false) {
-        destinationElement.appendChild(sourceElement);
-        sourceElementParent.appendChild(destinationElement.children[0]);
-    }
-    else {
-        destinationElementParent.appendChild(sourceElement);
-        sourceElementParent.appendChild(destinationElement);
-    }
-}
+//     if (destinationElement.draggable == false) {
+//         destinationElement.appendChild(sourceElement);
+//         sourceElementParent.appendChild(destinationElement.children[0]);
+//     }
+//     else {
+//         destinationElementParent.appendChild(sourceElement);
+//         sourceElementParent.appendChild(destinationElement);
+//     }
+// }
 
-var readContactHTML = function () {
-    var htmlFile = new XMLHttpRequest();
-    htmlFile.open('GET', 'contact.html', true);
-    htmlFile.onreadystatechange = function () {
-        if (htmlFile.readyState === 4) {
-            if (htmlFile.status === 200 || htmlFile.status == 0) {
-                htmlFile.send(htmlFile.responseText);
-            }
-        }
-    }
-    // htmlFile.send(htmlFile.responseText);
-}
+// var readContactHTML = function () {
+//     var htmlFile = new XMLHttpRequest();
+//     htmlFile.open('GET', 'contact.html', true);
+//     htmlFile.onreadystatechange = function () {
+//         if (htmlFile.readyState === 4) {
+//             if (htmlFile.status === 200 || htmlFile.status == 0) {
+//                 htmlFile.send(htmlFile.responseText);
+//             }
+//         }
+//     }
+//     // htmlFile.send(htmlFile.responseText);
+// }

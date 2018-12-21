@@ -1,71 +1,49 @@
-var contactForm = angular.module('contactForm',[]);
-contactForm.directive('contactForm',function(){
+var contactForm = angular.module('contactForm', []);
+contactForm.directive('contactForm', function () {
     var directive = {};
     directive.restrict = 'E';
     directive.scope = {
-        contactId : '@'
+        //contactId: '@',
+        contactRecord: '=contact'
     };
     directive.templateUrl = 'application_js/contact-form.html';
-    directive.controller = function($scope,$rootScope){
-        $scope.contact = {};
+    directive.controller = function ($scope, $rootScope) {
+        $scope.isUpdatedByRoot = false;
+        
         $scope.timezones = $rootScope.timezones;
-        $scope.contact = angular.copy($rootScope.contacts[$scope.contactId].contact);
-        //$scope.timezone = angular.copy($rootScope.contacts[$scope.contactId].contact);
         $scope.selectedTimeZoneId = angular.copy($rootScope.coordinatedTime.timezone.Id);
         $scope.localDateTime = {};
-        $scope.localDateTime.date = $rootScope.coordinatedTime.dateTime.getFullYear() + '-' +  ( $rootScope.coordinatedTime.dateTime.getMonth() + 1 ) + '-' + $rootScope.coordinatedTime.dateTime.getDate();
-        $scope.localDateTime.hours = ( $rootScope.coordinatedTime.dateTime.getHours() > 12 ? $rootScope.coordinatedTime.dateTime.getHours() - 12 : $rootScope.coordinatedTime.dateTime.getHours()) ;
-        $scope.localDateTime.minutes = $rootScope.coordinatedTime.dateTime.getMinutes();
-        $scope.localDateTime.meridiem = ( $rootScope.coordinatedTime.dateTime.getHours() > 12 ? 'PM' : 'AM');
-        //$scope.localCoordinatedTime = $rootScope.coordinatedTime;
+        $scope.localDateTime.date = $scope.contactRecord.dateTime.getFullYear() + '-' + ($scope.contactRecord.dateTime.getMonth() + 1) + '-' + $scope.contactRecord.dateTime.getDate();
+        $scope.localDateTime.hours = $scope.contactRecord.dateTime.getHours() > 12 ? $scope.contactRecord.dateTime.getHours() - 12 : $scope.contactRecord.dateTime.getHours();
+        $scope.localDateTime.minutes = $scope.contactRecord.dateTime.getMinutes();
+        $scope.localDateTime.meridiem = ($scope.contactRecord.dateTime.getHours() > 12 ? 'PM' : 'AM');
+        
+        $scope.skipUpdate = true;
 
-        $scope.$watch('selectedTimeZoneId',function(newValue, oldValue){
-            for(var index = 0; index < $rootScope.timezones.length; index ++)
-            {
-                if( $rootScope.timezones[index].Id === newValue )
-                {
-                    $scope.timezone = $rootScope.timezones[index];
-                    $rootScope.coordinatedTime.timezone = $scope.timezone;
+        $scope.$watch('localDateTime', function(newValue, oldValue, scope){
+            if( newValue.hours >= 13 )
+                newValue.hours = 1;
+            if( newValue.hours <= 0 )
+                newValue.hours = 12;
+            scope.contactRecord.dateTime = newValue;
+            scope.$parent.updateArrContacts(scope.contactRecord.contact.Index);
+        },true);
+
+        $scope.$watch('contactRecord.dateTime',function(newValue, oldValue, scope){
+            scope.localDateTime.date = newValue.date;
+            scope.localDateTime.hours = newValue.hours;
+            scope.localDateTime.minutes = newValue.minutes;
+            scope.localDateTime.meridiem = newValue.meridiem;
+        },true);
+
+        $scope.$watch('selectedTimeZoneId', function (newValue, oldValue) {
+            for (var index = 0; index < $rootScope.timezones.length; index++) {
+                if ($rootScope.timezones[index].Id === newValue) {
+                    $scope.contactRecord.timezone = $rootScope.timezones[index];
                     break;
                 }
             }
         });
-        $scope.$watch('localDateTime',function(newValue){
-            var dateElements = newValue.date.split('-');
-            var hours = newValue.meridiem == 'PM' ? newValue.hours+12 : newValue.hours;
-            var updatedDateTime = new Date(dateElements[0],dateElements[1],dateElements[2],hours, newValue.minutes);
-
-            var gmtDateTime = new Date( newValue.dateTime.valueOf() + ( 60000 * newValue.timezone.GMT_Offset_in_Minutes__c ) );
-            for( var index = 0; index < $rootScope.contacts.length; index ++ )
-            {
-                
-            }
-
-            //$rootScope.coordinatedTime.dateTime = updatedDateTime;
-            //$rootScope.contacts[$scope.contactId].dateTime = updatedDateTime;
-        },true);
-
-
-        // $scope.$watch('wrapper',function(newValue){
-        //     if( newValue.time )
-        //     {
-        //         $rootScope.coordinatedTime = new Date(newValue.time.fullDate.getFullYear(),newValue.time.fullDate.getMonth(),newValue.time.fullDate.getDate(),(newValue.time.meridiem == 'PM' ? newValue.time.hours + 12 : newValue.time.hours ),newValue.time.minutes );
-        //         var offSetMinutes;
-        //         for( var index = 0; index < $rootScope.timezones.length; index ++ )
-        //         {
-        //             if( newValue.timezone.Id === $rootScope.timezones[index] )
-        //             {
-        //                 offSetMinutes = $rootScope.timezones[index].GMT_Offset_in_Minutes__c;
-        //                 break;
-        //             }
-        //         }
-        //         $rootScope.coordinatedTime = new Date($rootScope.coordinatedTime.valueOf() + ( 60000 * offSetMinutes));
-        //     }
-        // },true);
-        // $scope.$watch('wrapper.timezone',function(newValue){
-        //     //$rootScope.coordinatedTime = new Date(newValue.fullDate.getFullYear(),newValue.fullDate.getMonth(),newValue.fullDate.getDate(),(newValue.meridiem == 'PM' ? newValue.hours + 12 : newValue.hours ),newValue.minutes );
-        //     //console.log($rootScope.coordinatedTime);
-        // });
     }
     return directive;
 });
