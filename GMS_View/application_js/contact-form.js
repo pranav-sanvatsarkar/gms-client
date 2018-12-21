@@ -21,12 +21,18 @@ contactForm.directive('contactForm', function () {
         $scope.skipUpdate = true;
 
         $scope.$watch('localDateTime', function(newValue, oldValue, scope){
-            if( newValue.hours >= 13 )
+            if( newValue.hours > 12 )
                 newValue.hours = 1;
             if( newValue.hours <= 0 )
                 newValue.hours = 12;
+            if( newValue.minutes > 59 )
+                newValue.minutes = 0;
+            if( newValue.minutes < 0 )
+                newValue.minutes = 59;
             scope.contactRecord.dateTime = newValue;
-            scope.$parent.updateArrContacts(scope.contactRecord.contact.Index);
+            setTimeout(function(){
+                scope.$parent.updateArrContacts(scope.contactRecord.contact.Index);
+            },500);
         },true);
 
         $scope.$watch('contactRecord.dateTime',function(newValue, oldValue, scope){
