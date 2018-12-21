@@ -7,14 +7,18 @@ gmsApp.controller('gmsAppController', function ($rootScope, $scope, $compile) {
         for (var index = 0; index < $scope.arrContacts.length; index++) {
             if ($scope.arrContacts[index].contact.Index != indexToSkip) {
                 if ($scope.arrContacts[index].timezone.Id === $scope.arrContacts[indexToSkip].timezone.Id)
+                {
                     $scope.arrContacts[index].dateTime = $scope.arrContacts[indexToSkip].dateTime;
+                }
                 else {
                     var sourceDateTimeGMT = $scope.getGMTDateTime($scope.arrContacts[indexToSkip].dateTime, $scope.arrContacts[indexToSkip].timezone.GMT_Offset_in_Minutes__c);
                     var destinationDateTime = new Date(sourceDateTimeGMT.valueOf() + (60000 * $scope.arrContacts[index].timezone.GMT_Offset_in_Minutes__c));
                     $scope.arrContacts[index].dateTime = $scope.getFullDateToDateTime(destinationDateTime);
                 }
+                $scope.arrContacts[index].contact.isUpdated = true;
             }
         }
+        $scope.$apply();
     }
 
     $scope.getGMTDateTime = function (dateTime, timeZoneOffSet) {
@@ -94,6 +98,7 @@ gmsApp.controller('gmsAppController', function ($rootScope, $scope, $compile) {
         contact.Id = '123';
         contact.Name = '';
         contact.Index = $scope.divCounter;
+        contact.isUpdated = false;
 
         //$scope.arrContacts.push(contact);
 

@@ -91,3 +91,9 @@ body{
 #schedule{
     display: none;
 }
+
+input, textarea, select, button {
+    font-size: 14px !important;
+    padding: 5px !important;
+    text-align: right !important;
+}

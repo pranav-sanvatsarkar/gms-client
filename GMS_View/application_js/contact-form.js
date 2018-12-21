@@ -30,9 +30,14 @@ contactForm.directive('contactForm', function () {
             if( newValue.minutes < 0 )
                 newValue.minutes = 59;
             scope.contactRecord.dateTime = newValue;
-            setTimeout(function(){
-                scope.$parent.updateArrContacts(scope.contactRecord.contact.Index);
-            },500);
+            if( !scope.contactRecord.contact.isUpdated )
+            {
+                setTimeout(function(){
+                    scope.$parent.updateArrContacts(scope.contactRecord.contact.Index);
+                },100);
+            }
+            else
+                scope.contactRecord.contact.isUpdated = false;
         },true);
 
         $scope.$watch('contactRecord.dateTime',function(newValue, oldValue, scope){

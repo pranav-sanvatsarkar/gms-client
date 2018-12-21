@@ -15,12 +15,25 @@
     </div>
     <div class="form-group">
         <label>Time</label>
-        <input type="number" class="form-control" ng-model="localDateTime.hours">
-        <input type="number" class="form-control" ng-model="localDateTime.minutes">
-        <select ng-model="localDateTime.meridiem" class="form-control">
-            <option value="AM">AM</option>
-            <option value="PM">PM</option>
-        </select>
+    </div>
+    <div class="form-row">
+        <div class="form-group col-md-4">
+            <label>Hours</label>
+            <input type="number" class="form-control" ng-model="localDateTime.hours">
+        </div>
+        <div class="form-group col-md-4">
+            <label>Minutes</label>
+            <input type="number" class="form-control" ng-model="localDateTime.minutes">
+        </div>
+        <div class="form-group col-md-4">
+            <label>Medirum</label>
+            <select ng-model="localDateTime.meridiem" class="form-control">
+                <option value="AM">AM</option>
+                <option value="PM">PM</option>
+            </select>
+        </div>
+        
+        
     </div>
     <button type="button" class="btn btn-primary">Submit</button>
 </div>
