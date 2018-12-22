@@ -85,6 +85,15 @@
     height: 500px;
     background-color: #ffffff;
 }
+.container{
+    margin-top: 25px;
+}
+.close{
+    margin-right: 10px;
+}
+.close span{
+    font-size: 25px;
+}
 body{
     background-color: #f8f9fa;
 }

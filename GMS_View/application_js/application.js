@@ -3,36 +3,33 @@ gmsApp.controller('gmsAppController', function ($rootScope, $scope, $compile) {
 
     $scope.arrContacts = [];
     $scope.indexChanged = -1;
-    $scope.updateArrContacts = function (indexToSkip) {
+    $scope.maxAllowedDivCount = 5;
+    $scope.updateArrContacts = function (sourceDateTime, sourceTimezoneOffSet) {
         for (var index = 0; index < $scope.arrContacts.length; index++) {
-            if ($scope.arrContacts[index].contact.Index != indexToSkip) {
-                if ($scope.arrContacts[index].timezone.Id === $scope.arrContacts[indexToSkip].timezone.Id)
-                {
-                    $scope.arrContacts[index].dateTime = $scope.arrContacts[indexToSkip].dateTime;
-                }
-                else {
-                    var sourceDateTimeGMT = $scope.getGMTDateTime($scope.arrContacts[indexToSkip].dateTime, $scope.arrContacts[indexToSkip].timezone.GMT_Offset_in_Minutes__c);
-                    var destinationDateTime = new Date(sourceDateTimeGMT.valueOf() + (60000 * $scope.arrContacts[index].timezone.GMT_Offset_in_Minutes__c));
-                    $scope.arrContacts[index].dateTime = $scope.getFullDateToDateTime(destinationDateTime);
-                }
-                $scope.arrContacts[index].contact.isUpdated = true;
-            }
+            var sourceDateTimeGMT = $scope.getGMTDateTime(sourceDateTime, sourceTimezoneOffSet);
+            var destDateTime = new Date(sourceDateTimeGMT.valueOf() + (60000 * $scope.arrContacts[index].timezone.GMT_Offset_in_Minutes__c));
+            $scope.arrContacts[index].dateTime = $scope.getFullDateToDateTime(destDateTime);
         }
-        $scope.$apply();
     }
 
     $scope.getGMTDateTime = function (dateTime, timeZoneOffSet) {
         if( dateTime.meridiem == 'AM' && dateTime.hours == 12 )
             dateTime.hours = 0;
         var hours = dateTime.meridiem == 'PM' ? dateTime.hours + 12 : dateTime.hours;
-        var dateTimeFull = new Date(dateTime.date.split('-')[0], (dateTime.date.split('-')[1]-1), dateTime.date.split('-')[2], hours, dateTime.minutes);
+        var month = dateTime.date.split('-')[1] - 1;
+        if( month.valueOf() < 10 )
+            month = '0' + month;
+        var dateTimeFull = new Date(dateTime.date.split('-')[0], month, dateTime.date.split('-')[2], hours, dateTime.minutes);
         var gmtDateTimeFull = new Date(dateTimeFull.valueOf() - (60000 * timeZoneOffSet));
         return gmtDateTimeFull;
     }
 
     $scope.getFullDateToDateTime = function (fullDate) {
         var dateTime = {};
-        dateTime.date = fullDate.getFullYear() + '-' + (fullDate.getMonth() + 1) + '-' + fullDate.getDate();
+        var month = (fullDate.getMonth() + 1);
+        if( month < 10 )
+            month = '0' + month;
+        dateTime.date = fullDate.getFullYear() + '-' + month + '-' + fullDate.getDate();
         dateTime.hours = fullDate.getHours() > 12 ? fullDate.getHours() - 12 : fullDate.getHours();
         dateTime.minutes = fullDate.getMinutes();
         dateTime.meridiem = (fullDate.getHours() > 12 ? 'PM' : 'AM');
@@ -67,10 +64,10 @@ gmsApp.controller('gmsAppController', function ($rootScope, $scope, $compile) {
     $scope.divCounter = 0;
 
     $scope.addContact = function () {
-        if ($scope.divCounter < 5) {
-            var contact = $scope.contact();
-            $scope.createContact($scope.divCounter);
+        if ($scope.divCounter < $scope.maxAllowedDivCount) {
+            var contact = $scope.contact($scope.divCounter);
             $scope.arrContacts.push(contact);
+            $scope.createContact($scope.divCounter);
             //$rootScope.contacts.push(contact);
             $scope.divCounter++;
         }
@@ -85,7 +82,12 @@ gmsApp.controller('gmsAppController', function ($rootScope, $scope, $compile) {
         innerDiv.className = 'schedule-contacts-element-content';
         // innerDiv.draggable = true;
         //innerDiv.setAttribute('ondragstart', 'drag(event)');
-        var newElement = $compile('<contact-form contact-id="' + divId + '" contact="arrContacts[' + divId + ']"/>')($scope);
+        var contactRecordIndex = 0;
+        for( var index = 0; index < $scope.arrContacts.length; index ++ ){
+            if( $scope.arrContacts[index].contact.Index == divId )
+                contactRecordIndex = index;
+        }
+        var newElement = $compile('<contact-form contact="arrContacts[' + contactRecordIndex + ']"/>')($scope);
         div.appendChild(innerDiv);
         angular.element(innerDiv).append(newElement);
         // div.setAttribute('ondragover', "allowDrop(event)");
@@ -93,11 +95,11 @@ gmsApp.controller('gmsAppController', function ($rootScope, $scope, $compile) {
         document.getElementById('schedule-contacts').appendChild(div);
     }
 
-    $scope.contact = function () {
+    $scope.contact = function (divCounter) {
         var contact = {};
         contact.Id = '123';
         contact.Name = '';
-        contact.Index = $scope.divCounter;
+        contact.Index = divCounter;
         contact.isUpdated = false;
 
         //$scope.arrContacts.push(contact);
@@ -105,7 +107,7 @@ gmsApp.controller('gmsAppController', function ($rootScope, $scope, $compile) {
         var contactWrapper = {};
         contactWrapper.contact = contact;
         contactWrapper.timezone = $rootScope.coordinatedTime.timezone;
-        contactWrapper.dateTime = $rootScope.coordinatedTime.dateTime;
+        contactWrapper.dateTime = $scope.getFullDateToDateTime($rootScope.coordinatedTime.dateTime);
         return contactWrapper;
     }
 
@@ -174,31 +176,7 @@ var closeDiv = function (divId) {
     document.getElementById(divId).style.display = 'none';
 }
 
-// var divCount = 0;
-// var addContact = function () {
-//     if (divCount < 5) {
-//         createContact('div-' + divCount);
-//         divCount++;
-//     }
-// }
-// var removeContact = function () {
 
-// }
-// var createContact = async function (divId) {
-//     var div = document.createElement('div');
-//     div.className = 'schedule-contacts-element';
-//     div.id = divId;
-//     var innerDiv = document.createElement('div');
-//     innerDiv.id = "inner-" + divId;
-//     innerDiv.className = 'schedule-contacts-element-content';
-//     innerDiv.draggable = true;
-//     innerDiv.setAttribute('ondragstart', 'drag(event)');
-//     innerDiv.innerHTML = await readContactHTML();
-//     div.appendChild(innerDiv);
-//     div.setAttribute('ondragover', "allowDrop(event)");
-//     div.setAttribute('ondrop', "drop(event)");
-//     document.getElementById('schedule-contacts').appendChild(div);
-// }
 
 
 // var allowDrop = function (event) {

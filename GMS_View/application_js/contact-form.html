@@ -1,3 +1,6 @@
+<button type="button" class="close" aria-label="Close">
+    <span aria-hidden="true" ng-click="removeContact(this)">&times;</span>
+</button>
 <div class="container" draggable="false">
     <div class="form-group">
         <label>Contact Name</label>
@@ -11,7 +14,7 @@
     </div>
     <div class="form-group">
         <label>Date</label>
-        <input type="date" class="form-control" ng-model="localDateTime.date" placeholder="dd-MM-yyyy">
+        <input type="date" class="form-control" ng-model="localDateTime.date" placeholder="dd-MM-yyyy" ng-change="updateContactDateTime()">
     </div>
     <div class="form-group">
         <label>Time</label>
@@ -19,21 +22,19 @@
     <div class="form-row">
         <div class="form-group col-md-4">
             <label>Hours</label>
-            <input type="number" class="form-control" ng-model="localDateTime.hours">
+            <input type="number" class="form-control" ng-model="localDateTime.hours" ng-change="updateContactDateTime()">
         </div>
         <div class="form-group col-md-4">
             <label>Minutes</label>
-            <input type="number" class="form-control" ng-model="localDateTime.minutes">
+            <input type="number" class="form-control" ng-model="localDateTime.minutes" ng-change="updateContactDateTime()">
         </div>
         <div class="form-group col-md-4">
             <label>Medirum</label>
-            <select ng-model="localDateTime.meridiem" class="form-control">
+            <select ng-model="localDateTime.meridiem" class="form-control" ng-change="updateContactDateTime()">
                 <option value="AM">AM</option>
                 <option value="PM">PM</option>
             </select>
         </div>
-        
-        
     </div>
     <button type="button" class="btn btn-primary">Submit</button>
 </div>

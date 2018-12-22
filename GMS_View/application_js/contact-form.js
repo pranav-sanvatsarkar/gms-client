@@ -3,49 +3,36 @@ contactForm.directive('contactForm', function () {
     var directive = {};
     directive.restrict = 'E';
     directive.scope = {
-        //contactId: '@',
         contactRecord: '=contact'
     };
     directive.templateUrl = 'application_js/contact-form.html';
-    directive.controller = function ($scope, $rootScope) {
+    directive.controller = function ($scope, $rootScope, $compile) {
         $scope.isUpdatedByRoot = false;
-        
+
         $scope.timezones = $rootScope.timezones;
-        $scope.selectedTimeZoneId = angular.copy($rootScope.coordinatedTime.timezone.Id);
+        $scope.selectedTimeZoneId = angular.copy($scope.contactRecord.timezone.Id);
         $scope.localDateTime = {};
-        $scope.localDateTime.date = $scope.contactRecord.dateTime.getFullYear() + '-' + ($scope.contactRecord.dateTime.getMonth() + 1) + '-' + $scope.contactRecord.dateTime.getDate();
-        $scope.localDateTime.hours = $scope.contactRecord.dateTime.getHours() > 12 ? $scope.contactRecord.dateTime.getHours() - 12 : $scope.contactRecord.dateTime.getHours();
-        $scope.localDateTime.minutes = $scope.contactRecord.dateTime.getMinutes();
-        $scope.localDateTime.meridiem = ($scope.contactRecord.dateTime.getHours() > 12 ? 'PM' : 'AM');
+
+        $scope.updateContactDateTime = function(){
+            $scope.contactRecord.dateTime = $scope.localDateTime;
+            $scope.$parent.updateArrContacts($scope.localDateTime, $scope.contactRecord.timezone.GMT_Offset_in_Minutes__c);
+        }
         
-        $scope.skipUpdate = true;
-
-        $scope.$watch('localDateTime', function(newValue, oldValue, scope){
-            if( newValue.hours > 12 )
+        $scope.$watch('contactRecord.dateTime', function (newValue, oldValue, scope) {
+            if (newValue) {
+                if (newValue.hours > 12)
                 newValue.hours = 1;
-            if( newValue.hours <= 0 )
+                if (newValue.hours <= 0)
                 newValue.hours = 12;
-            if( newValue.minutes > 59 )
+                
+                if (newValue.minutes > 59)
                 newValue.minutes = 0;
-            if( newValue.minutes < 0 )
+                if (newValue.minutes < 0)
                 newValue.minutes = 59;
-            scope.contactRecord.dateTime = newValue;
-            if( !scope.contactRecord.contact.isUpdated )
-            {
-                setTimeout(function(){
-                    scope.$parent.updateArrContacts(scope.contactRecord.contact.Index);
-                },100);
+                if( scope.localDateTime != newValue )
+                    scope.localDateTime = newValue;
             }
-            else
-                scope.contactRecord.contact.isUpdated = false;
-        },true);
-
-        $scope.$watch('contactRecord.dateTime',function(newValue, oldValue, scope){
-            scope.localDateTime.date = newValue.date;
-            scope.localDateTime.hours = newValue.hours;
-            scope.localDateTime.minutes = newValue.minutes;
-            scope.localDateTime.meridiem = newValue.meridiem;
-        },true);
+        }, true);
 
         $scope.$watch('selectedTimeZoneId', function (newValue, oldValue) {
             for (var index = 0; index < $rootScope.timezones.length; index++) {
@@ -55,6 +42,30 @@ contactForm.directive('contactForm', function () {
                 }
             }
         });
+
+        $scope.removeContact = function (element) {
+            if ($scope.contactRecord) {
+                var indexToRemove = -1;
+                for (var index = 0; index < $scope.$parent.arrContacts.length; index++) {
+                    if ($scope.$parent.arrContacts[index].contact.Index == $scope.contactRecord.contact.Index)
+                        indexToRemove = index;
+                }
+                document.getElementById('div-' + $scope.contactRecord.contact.Index).outerHTML = '';
+                $scope.$parent.arrContacts.splice(indexToRemove, 1);
+                setTimeout(function () {
+                    for (var index = 0; index < $scope.$parent.arrContacts.length; index++) {
+                        var divContainer = document.getElementById('inner-div-' + $scope.$parent.arrContacts[index].contact.Index);
+                        if (divContainer) {
+                            divContainer.innerHTML = '';
+                            var elementToAppend = $compile('<contact-form contact="arrContacts[' + index + ']"/>')($scope.$parent);
+                            angular.element(divContainer).append(elementToAppend);
+                        }
+                    }
+                    $scope.$parent.$apply();
+                    $scope.$parent.maxAllowedDivCount++;
+                }, 500);
+            }
+        }
     }
     return directive;
 });
