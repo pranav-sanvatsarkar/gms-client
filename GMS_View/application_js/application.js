@@ -1,9 +1,32 @@
-var gmsApp = angular.module('gmsApp', ['contactForm']);
-gmsApp.controller('gmsAppController', function ($rootScope, $scope, $compile) {
+var gmsApp = angular.module('gmsApp', ['contactForm', 'dbService', 'objectService']);
+gmsApp.controller('gmsAppController', function ($rootScope, $scope, $compile, $database, $object) {
 
     $scope.arrContacts = [];
     $scope.indexChanged = -1;
     $scope.maxAllowedDivCount = 5;
+    $scope.database;
+
+    $scope.contactRecordToPush = $object.getContact();
+
+    $scope.insertRow = function(){
+        var arrContacts = [];
+        //$scope.contactRecordToPush.External_Id__c = '123';
+        arrContacts.push( $scope.contactRecordToPush );
+
+        var additionalRecord =  $object.getContact();
+        additionalRecord = angular.copy( $scope.contactRecordToPush );
+        additionalRecord.Id = $database.generateUID();
+        additionalRecord.External_Id__c = $database.generateUID();
+        //additionalRecord.External_Id__c = '345';
+        arrContacts.push( additionalRecord );
+
+        $database.insertObjects('contacts',arrContacts).then(function(result){
+            console.log(result);
+        }, function(error){
+            console.log(error);
+        });
+    }
+
     $scope.updateArrContacts = function (sourceDateTime, sourceTimezoneOffSet) {
         for (var index = 0; index < $scope.arrContacts.length; index++) {
             var sourceDateTimeGMT = $scope.getGMTDateTime(sourceDateTime, sourceTimezoneOffSet);
@@ -13,11 +36,11 @@ gmsApp.controller('gmsAppController', function ($rootScope, $scope, $compile) {
     }
 
     $scope.getGMTDateTime = function (dateTime, timeZoneOffSet) {
-        if( dateTime.meridiem == 'AM' && dateTime.hours == 12 )
+        if (dateTime.meridiem == 'AM' && dateTime.hours == 12)
             dateTime.hours = 0;
         var hours = dateTime.meridiem == 'PM' ? dateTime.hours + 12 : dateTime.hours;
         var month = dateTime.date.split('-')[1] - 1;
-        if( month.valueOf() < 10 )
+        if (month.valueOf() < 10)
             month = '0' + month;
         var dateTimeFull = new Date(dateTime.date.split('-')[0], month, dateTime.date.split('-')[2], hours, dateTime.minutes);
         var gmtDateTimeFull = new Date(dateTimeFull.valueOf() - (60000 * timeZoneOffSet));
@@ -27,15 +50,45 @@ gmsApp.controller('gmsAppController', function ($rootScope, $scope, $compile) {
     $scope.getFullDateToDateTime = function (fullDate) {
         var dateTime = {};
         var month = (fullDate.getMonth() + 1);
-        if( month < 10 )
+        if (month < 10)
             month = '0' + month;
         dateTime.date = fullDate.getFullYear() + '-' + month + '-' + fullDate.getDate();
         dateTime.hours = fullDate.getHours() > 12 ? fullDate.getHours() - 12 : fullDate.getHours();
         dateTime.minutes = fullDate.getMinutes();
         dateTime.meridiem = (fullDate.getHours() > 12 ? 'PM' : 'AM');
-        if( dateTime.meridiem == 'AM' && dateTime.hours == 0 )
+        if (dateTime.meridiem == 'AM' && dateTime.hours == 0)
             dateTime.hours = 12;
         return dateTime;
+    }
+
+    $scope.createDatabase = function () {
+        $database.initialize().then(function (result) {
+            $scope.database = result;
+            //$database.readData('contacts');
+        });
+    }
+
+    $scope.createDatabase();
+
+    $scope.addRow = function () {
+        var request = $scope.database.transaction('contacts', 'readwrite');
+        request.objectStore('contacts').add({ 'external_id__c': '123', 'name': 'Pranav' });
+        request.onsuccess = function (event) {
+            console.log(event);
+        }
+        request.onerror = function (event) {
+            console.log(event);
+        }
+    }
+
+    $scope.readRows = function () {
+        var request = $scope.database.transaction('contacts').objectStore('contacts').getAll();
+        request.onsuccess = function (event) {
+            alert(event);
+        }
+        request.onerror = function (event) {
+            alert(event);
+        }
     }
 
     $rootScope.contacts = [];
@@ -83,8 +136,8 @@ gmsApp.controller('gmsAppController', function ($rootScope, $scope, $compile) {
         // innerDiv.draggable = true;
         //innerDiv.setAttribute('ondragstart', 'drag(event)');
         var contactRecordIndex = 0;
-        for( var index = 0; index < $scope.arrContacts.length; index ++ ){
-            if( $scope.arrContacts[index].contact.Index == divId )
+        for (var index = 0; index < $scope.arrContacts.length; index++) {
+            if ($scope.arrContacts[index].contact.Index == divId)
                 contactRecordIndex = index;
         }
         var newElement = $compile('<contact-form contact="arrContacts[' + contactRecordIndex + ']"/>')($scope);

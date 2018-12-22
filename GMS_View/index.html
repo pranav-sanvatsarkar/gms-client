@@ -9,6 +9,8 @@
     </link>
     <script src="vendor_js/angular_js/angular.min.js"></script>
     <script src="application_js/contact-form.js"></script>
+    <script src="application_js/objects-provider.js"></script>
+    <script src="application_js/database-service.js"></script>
     <script src="application_js/application.js"></script>
     <script>
         function openNav() {
@@ -39,9 +41,18 @@
                 <h1>Schedule a meeting</h1>
                 <div class="btn-add-contact">
                     <button class="btn btn-primary" ng-click="addContact()">Add a Contact</button>
+                    <button class="btn btn-warning" ng-click="addRow()">Read rows</button>
                 </div>
                 <div id="schedule-contacts" class="schedule-contacts">
                     
+                    <input type="text" ng-model="contactRecordToPush.FirstName">
+                    <input type="text" ng-model="contactRecordToPush.LastName">
+                    <input type="text" ng-model="contactRecordToPush.Email">
+                    <input type="text" ng-model="contactRecordToPush.Id">
+                    <input type="text" ng-model="contactRecordToPush.External_Id__c">
+                    <input type="text" ng-model="contactRecordToPush.Account">
+                    <button ng-click="insertRow()">Save Contact</button> 
+
                 </div>
             </div>
             <div id="schedule" class="contents">
