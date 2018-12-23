@@ -232,7 +232,7 @@ gmsApp.controller('gmsAppController', function ($rootScope, $scope, $compile, $d
 
     $scope.selectGroup = function(selectedGroup){
         if( selectedGroup )
-            $scope.selectedAttendeeGroup = selectedGroup;
+            $scope.selectedAttendeeGroup = angular.copy(selectedGroup);
         else
         {
             $scope.selectedAttendeeGroup = {};
