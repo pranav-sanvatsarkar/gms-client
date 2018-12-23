@@ -39,9 +39,13 @@
             </div>
             <div id="contacts" class="contents">
                 <h1>Schedule a meeting</h1>
+                <div>
+                    <label>Group Name</label>
+                    <input type="text" ng-model="selectedAttendeeGroup.Name"></div>
+                </div>
                 <div class="btn-add-contact">
                     <button class="btn btn-primary" ng-click="addAttendee()">Add an Attendee</button>
-                    <button class="btn btn-warning" ng-click="addRow()">Read rows</button>
+                    <button class="btn btn-success" ng-click="upsertAttendeeGroups()">Save Group</button>
                 </div>
                 <div id="schedule-contacts" class="schedule-contacts">
                 </div>

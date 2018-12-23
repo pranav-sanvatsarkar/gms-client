@@ -186,61 +186,41 @@ gmsApp.controller('gmsAppController', function ($rootScope, $scope, $compile, $d
         return contactWrapper;
     }
 
-    $scope.getTimeZones = function () {
-        var timezones = [];
-        var timezone = {};
-        timezone.Name = 'Eastern Standard Time / Eastern Time';
-        timezone.Short_Name__c = 'EST';
-        timezone.Region__c = 'New_York';
-        timezone.City_or_State__c = '';
-        timezone.Country__c = '';
-        timezone.GMT_Offset_in_Minutes__c = -300;
-        timezone.Type__c = 'Standard Time';
-        timezone.Id = 'a001000001dTgUl';
-        timezones.push(timezone);
-
-        timezone = {};
-        timezone.Name = 'Gulf Standard Time';
-        timezone.Short_Name__c = 'GST';
-        timezone.Region__c = 'Asia';
-        timezone.City_or_State__c = '';
-        timezone.Country__c = '';
-        timezone.GMT_Offset_in_Minutes__c = 240;
-        timezone.Type__c = 'Standard Time';
-        timezone.Id = 'a001000001dTgUq';
-        timezones.push(timezone);
-
-        timezone = {};
-        timezone.Name = 'India Standard Time / India Time';
-        timezone.Short_Name__c = 'IST';
-        timezone.Region__c = 'India';
-        timezone.City_or_State__c = '';
-        timezone.Country__c = '';
-        timezone.GMT_Offset_in_Minutes__c = 330;
-        timezone.Type__c = 'Standard Time';
-        timezone.Id = 'a001000001dTgUv';
-        timezones.push(timezone);
-
-        timezone = {};
-        timezone.Name = 'Pacific Standard Time / Pacific Time';
-        timezone.Short_Name__c = 'PST';
-        timezone.Region__c = 'America';
-        timezone.City_or_State__c = 'Tijuana';
-        timezone.Country__c = 'Mexico';
-        timezone.GMT_Offset_in_Minutes__c = -600;
-        timezone.Type__c = 'Daylight Saving Time';
-        timezone.Id = 'a001000001dTFrQ';
-        timezones.push(timezone);
-        return timezones;
-
-
-        // timezone.DST_End_Date__c = '';
-        // timezone.DST_State_Date__c = '';
-        // timezone.DST_Timezone_Offset_in_Minutes__c = '';
-        // timezone.Is_DST_Active__c = '';
-        // timezone.Id = '';
+    $scope.upsertAttendeeGroups = function(){
+        if( !$scope.selectedAttendeeGroup.External_Id__c )
+            $scope.selectedAttendeeGroup.External_Id__c = $database.generateUID();
+        var attendeeGroups = [];
+        attendeeGroups.push( $scope.selectedAttendeeGroup );
+        $database.updateObjects('attendeeGroups',attendeeGroups).then(function(result){
+            debugger;
+        },function(error){
+            debugger;
+        });
     }
-    //$rootScope.timezones = $scope.timezones;
+
+    
+    // $scope.$watch('selectedAttendeeGroup',function(newValue){
+    //     console.log(newValue);
+    // },true);
+    
+    $scope.$watch('arrContacts',function(newValue){
+        if( newValue && newValue.length > 0 ){
+            //$scope.selectedAttendeeGroup.Name = 'Group1';
+            $scope.selectedAttendeeGroup.Attendees__c = [];
+            for( var index = 0; index < newValue.length; index ++ ){
+                var attendee = {};
+                attendee.Name = newValue[index].contact.Name;
+                attendee.Timezone__c = newValue[index].timezone.Id;    
+                $scope.selectedAttendeeGroup.Attendees__c.push( attendee );
+            }
+        }
+    },true);
+    $scope.selectedAttendeeGroup = {};
+    $scope.selectedAttendeeGroup.Name = 'Group_1';
+
+    $scope.upsertGroup = function(){
+        console.log('Group:' + $scope.selectedAttendeeGroup);
+    }
 });
 
 
