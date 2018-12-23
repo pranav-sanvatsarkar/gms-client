@@ -31,12 +31,14 @@ databaseService.service('$database', function ($q) {
             timezones.createIndex('Region__c', 'Region__c', { unique: false });
             timezones.createIndex('Short_Name__c', 'Short_Name__c', { unique: false });
             timezones.createIndex('Type__c', 'Type__c', { unique: false });
+            timezones.createIndex('IsDeleted', 'IsDeleted', { unique: false });
 
             var attendeeGroups = db.createObjectStore('attendeeGroups', { keyPath: 'External_Id__c' });
             attendeeGroups.createIndex('Id', 'Id', { unique: false });
-            attendeeGroups.createIndex('Attendees__c', 'Attendees__c', { unique: false });
             attendeeGroups.createIndex('Name', 'Name', { unique: false });
+            attendeeGroups.createIndex('Attendees__c', 'Attendees__c', { unique: false });
             attendeeGroups.createIndex('Account__c', 'Account__c', { unique: false });
+            attendeeGroups.createIndex('IsDeleted', 'IsDeleted', { unique: false });
 
             deferred.resolve(db);
         }
@@ -113,7 +115,12 @@ databaseService.service('$database', function ($q) {
                         deferred.reject(event);
                     }
                     request.onsuccess = function(event){
-                        deferred.resolve(event.target.result);
+                        var result = [];
+                        for(var index = 0; index < event.target.result.length; index ++ ){
+                            if( event.target.result[index].IsDeleted != true )
+                                result.push(event.target.result[index]);
+                        }
+                        deferred.resolve(result);
                     }
                 });
             }

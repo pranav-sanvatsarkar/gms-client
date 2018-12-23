@@ -67,7 +67,7 @@
     text-align: center
 }
 .schedule-contacts-element{
-    width: 250px;
+    width: 320px;
     border: 1px solid #6c757d;
     display: inline-block;
     margin: 20px 20px 20px 10px;
@@ -97,11 +97,27 @@ body{
     background-color: #f8f9fa;
 }
 #schedule{
-    display: none;
+    display: inline-block;
 }
 
-input, textarea, select, button {
+.group-name-input, .group-name-input:focus {
+    border: none;
+    background: transparent;
+    font-size: 36px !important;
+    font-family: -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,"Helvetica Neue",Arial,sans-serif,"Apple Color Emoji","Segoe UI Emoji","Segoe UI Symbol","Noto Color Emoji";
+    font-weight: bolder;
+    outline: none;
+}
+
+input, textarea, select {
     font-size: 14px !important;
+}
+select{
     padding: 5px !important;
     text-align: right !important;
+}
+
+#listGroups{
+    width: 95%;
+    margin-left: 5%;
 }

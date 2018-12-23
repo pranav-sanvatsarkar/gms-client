@@ -51,6 +51,7 @@ objectProvider.service('$object', function () {
         timezone.GMT_Offset_in_Minutes__c = -300;
         timezone.Type__c = 'Standard Time';
         timezone.Id = 'a001000001dTgUl';
+        timezone.IsDeleted = false;
         timezones.push(timezone);
 
         timezone = {};
@@ -62,6 +63,7 @@ objectProvider.service('$object', function () {
         timezone.GMT_Offset_in_Minutes__c = 240;
         timezone.Type__c = 'Standard Time';
         timezone.Id = 'a001000001dTgUq';
+        timezone.IsDeleted = false;
         timezones.push(timezone);
 
         timezone = {};
@@ -73,6 +75,7 @@ objectProvider.service('$object', function () {
         timezone.GMT_Offset_in_Minutes__c = 330;
         timezone.Type__c = 'Standard Time';
         timezone.Id = 'a001000001dTgUv';
+        timezone.IsDeleted = false;
         timezones.push(timezone);
 
         timezone = {};
@@ -84,6 +87,7 @@ objectProvider.service('$object', function () {
         timezone.GMT_Offset_in_Minutes__c = -600;
         timezone.Type__c = 'Daylight Saving Time';
         timezone.Id = 'a001000001dTFrQ';
+        timezone.IsDeleted = false;
         timezones.push(timezone);
         return timezones;
     }

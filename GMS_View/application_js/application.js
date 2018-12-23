@@ -8,25 +8,6 @@ gmsApp.controller('gmsAppController', function ($rootScope, $scope, $compile, $d
 
     $scope.contactRecordToPush = $object.getContact();
 
-    $scope.insertRow = function () {
-        var arrContacts = [];
-        //$scope.contactRecordToPush.External_Id__c = '123';
-        arrContacts.push($scope.contactRecordToPush);
-
-        var additionalRecord = $object.getContact();
-        additionalRecord = angular.copy($scope.contactRecordToPush);
-        additionalRecord.Id = $database.generateUID();
-        additionalRecord.External_Id__c = $database.generateUID();
-        //additionalRecord.External_Id__c = '345';
-        arrContacts.push(additionalRecord);
-
-        $database.insertObjects('contacts', arrContacts).then(function (result) {
-            console.log(result);
-        }, function (error) {
-            console.log(error);
-        });
-    }
-
     $scope.updateArrContacts = function (sourceDateTime, sourceTimezoneOffSet) {
         for (var index = 0; index < $scope.arrContacts.length; index++) {
             var sourceDateTimeGMT = $scope.getGMTDateTime(sourceDateTime, sourceTimezoneOffSet);
@@ -138,9 +119,10 @@ gmsApp.controller('gmsAppController', function ($rootScope, $scope, $compile, $d
     $rootScope.coordinatedTime.dateTime = new Date();
     $scope.divCounter = 0;
 
-    $scope.addAttendee = function () {
+    $scope.addAttendee = function (attendee) {
         if ($scope.divCounter < $scope.maxAllowedDivCount) {
-            var contact = $scope.contact($scope.divCounter);
+
+            var contact = attendee ? attendee : $scope.contact($scope.divCounter);
             $scope.arrContacts.push(contact);
             $scope.createContact($scope.divCounter);
             //$rootScope.contacts.push(contact);
@@ -172,10 +154,10 @@ gmsApp.controller('gmsAppController', function ($rootScope, $scope, $compile, $d
 
     $scope.contact = function (divCounter) {
         var contact = {};
-        contact.Id = '123';
+        //contact.Id = '123';
         contact.Name = '';
         contact.Index = divCounter;
-        contact.isUpdated = false;
+        //contact.isUpdated = false;
 
         //$scope.arrContacts.push(contact);
 
@@ -186,26 +168,42 @@ gmsApp.controller('gmsAppController', function ($rootScope, $scope, $compile, $d
         return contactWrapper;
     }
 
-    $scope.upsertAttendeeGroups = function(){
+    $scope.upsertAttendeeGroups = function(selectedGroup){
         if( !$scope.selectedAttendeeGroup.External_Id__c )
             $scope.selectedAttendeeGroup.External_Id__c = $database.generateUID();
         var attendeeGroups = [];
-        attendeeGroups.push( $scope.selectedAttendeeGroup );
+        attendeeGroups.push( selectedGroup ? selectedGroup : $scope.selectedAttendeeGroup );
         $database.updateObjects('attendeeGroups',attendeeGroups).then(function(result){
-            debugger;
+            $scope.isGroupSaved = true;
+            $scope.fetchGroups();
         },function(error){
-            debugger;
+            console.log('Attendee Groups upsert error: ' + error);
         });
     }
 
-    
-    // $scope.$watch('selectedAttendeeGroup',function(newValue){
-    //     console.log(newValue);
-    // },true);
-    
-    $scope.$watch('arrContacts',function(newValue){
+    $scope.isSaveValid = function(){
+        $scope.isSaveEnabled = true;
+        if( $scope.arrContacts.length > 0 )
+        {
+            for(var index = 0; index < $scope.arrContacts.length; index ++){
+                if( $scope.arrContacts[index].contact.Name.length == 0 || !$scope.arrContacts[index].timezone.Id ){
+                    $scope.isSaveEnabled = false;
+                    break;
+                }
+            }
+            if($scope.selectedAttendeeGroup.Name.length < 1 )
+                $scope.isSaveEnabled = false;
+        }
+        else
+            $scope.isSaveEnabled = false;
+    }
+
+    $scope.$watch('selectedAttendeeGroup',function(newValue, oldValue, scope){
+        scope.isSaveValid();
+    },true);
+
+    $scope.$watch('arrContacts',function(newValue,oldValue, scope){
         if( newValue && newValue.length > 0 ){
-            //$scope.selectedAttendeeGroup.Name = 'Group1';
             $scope.selectedAttendeeGroup.Attendees__c = [];
             for( var index = 0; index < newValue.length; index ++ ){
                 var attendee = {};
@@ -214,13 +212,68 @@ gmsApp.controller('gmsAppController', function ($rootScope, $scope, $compile, $d
                 $scope.selectedAttendeeGroup.Attendees__c.push( attendee );
             }
         }
+        $scope.isSaveValid();
     },true);
     $scope.selectedAttendeeGroup = {};
     $scope.selectedAttendeeGroup.Name = 'Group_1';
 
-    $scope.upsertGroup = function(){
-        console.log('Group:' + $scope.selectedAttendeeGroup);
+    $scope.existingGroups = [];
+
+    $scope.fetchGroups = function(){
+        $scope.existingGroups = [];
+        $database.getAllRecords('attendeeGroups').then(function(result){
+            $scope.existingGroups = result;
+            if( !$scope.isGroupSaved )
+                $scope.selectGroup(result[0]);
+        },function(error){
+            console.log('Attendee Groups fetch error: ' + error);
+        });
     }
+
+    $scope.selectGroup = function(selectedGroup){
+        if( selectedGroup )
+            $scope.selectedAttendeeGroup = selectedGroup;
+        else
+        {
+            $scope.selectedAttendeeGroup = {};
+            $scope.selectedAttendeeGroup.Name = 'Group_1';
+        }
+        $scope.arrContacts = [];
+        $scope.divCounter = 0;
+        document.getElementById('schedule-contacts').innerHTML = '';
+
+        if( selectedGroup )
+        {
+            for( var index = 0; index < selectedGroup.Attendees__c.length; index ++ )
+            {
+                var attendee = $scope.contact($scope.divCounter);
+                attendee.contact.Name = selectedGroup.Attendees__c[index].Name;
+                attendee.contact.Index = index;
+                for(var timezoneIndex = 0; timezoneIndex < $scope.timezones.length; timezoneIndex++){
+                    if( selectedGroup.Attendees__c[index].Timezone__c === $scope.timezones[timezoneIndex].Id )
+                        attendee.timezone = $scope.timezones[timezoneIndex];
+                }
+                $scope.addAttendee(attendee);
+            }
+
+        }
+    }
+
+    $scope.cancel = function(){
+        if( $scope.existingGroups.length > 0 )
+            $scope.selectGroup($scope.existingGroups[0]);
+        else
+            $scope.selectGroup();
+    }
+
+    $scope.removeGroup = function(selectedGroup){
+        selectedGroup.IsDeleted = true;
+        $scope.upsertAttendeeGroups(selectedGroup);
+        setTimeout(function(){ $scope.cancel(); }, 1000);
+    }
+    $scope.isGroupSaved = false;
+    $scope.isSaveEnabled = false;
+    setTimeout(function(){ $scope.fetchGroups(); }, 500);
 });
 
 
@@ -230,49 +283,3 @@ var openDiv = function (divId) {
 var closeDiv = function (divId) {
     document.getElementById(divId).style.display = 'none';
 }
-
-
-
-
-// var allowDrop = function (event) {
-//     event.preventDefault();
-// }
-
-// var drag = function (event) {
-//     event.dataTransfer.setData('sourceId', event.target.id);
-// }
-
-// var drop = function (event) {
-//     event.preventDefault();
-//     var elementToMove;
-
-//     var sourceId = event.dataTransfer.getData('sourceId');
-//     var sourceElement = document.getElementById(sourceId);
-//     var sourceElementParent = sourceElement.parentElement;
-
-//     var destinationId = event.target.id;
-//     var destinationElement = event.target;
-//     var destinationElementParent = destinationElement.parentElement;
-
-//     if (destinationElement.draggable == false) {
-//         destinationElement.appendChild(sourceElement);
-//         sourceElementParent.appendChild(destinationElement.children[0]);
-//     }
-//     else {
-//         destinationElementParent.appendChild(sourceElement);
-//         sourceElementParent.appendChild(destinationElement);
-//     }
-// }
-
-// var readContactHTML = function () {
-//     var htmlFile = new XMLHttpRequest();
-//     htmlFile.open('GET', 'contact.html', true);
-//     htmlFile.onreadystatechange = function () {
-//         if (htmlFile.readyState === 4) {
-//             if (htmlFile.status === 200 || htmlFile.status == 0) {
-//                 htmlFile.send(htmlFile.responseText);
-//             }
-//         }
-//     }
-//     // htmlFile.send(htmlFile.responseText);
-// }

@@ -3,7 +3,7 @@
 </button>
 <div class="container" draggable="false">
     <div class="form-group">
-        <label>Contact Name</label>
+        <label>Attendee Name</label>
         <input type="text" class="form-control" placeholder="e.g. John Smith" ng-model="contactRecord.contact.Name">
     </div>
     <div class="form-group">
@@ -29,12 +29,11 @@
             <input type="number" class="form-control" ng-model="localDateTime.minutes" ng-change="updateContactDateTime()">
         </div>
         <div class="form-group col-md-4">
-            <label>Medirum</label>
+            <label>AM/PM</label>
             <select ng-model="localDateTime.meridiem" class="form-control" ng-change="updateContactDateTime()">
                 <option value="AM">AM</option>
                 <option value="PM">PM</option>
             </select>
         </div>
     </div>
-    <button type="button" class="btn btn-primary">Submit</button>
 </div>
