@@ -8,21 +8,21 @@ gmsApp.controller('gmsAppController', function ($rootScope, $scope, $compile, $d
 
     $scope.contactRecordToPush = $object.getContact();
 
-    $scope.insertRow = function(){
+    $scope.insertRow = function () {
         var arrContacts = [];
         //$scope.contactRecordToPush.External_Id__c = '123';
-        arrContacts.push( $scope.contactRecordToPush );
+        arrContacts.push($scope.contactRecordToPush);
 
-        var additionalRecord =  $object.getContact();
-        additionalRecord = angular.copy( $scope.contactRecordToPush );
+        var additionalRecord = $object.getContact();
+        additionalRecord = angular.copy($scope.contactRecordToPush);
         additionalRecord.Id = $database.generateUID();
         additionalRecord.External_Id__c = $database.generateUID();
         //additionalRecord.External_Id__c = '345';
-        arrContacts.push( additionalRecord );
+        arrContacts.push(additionalRecord);
 
-        $database.insertObjects('contacts',arrContacts).then(function(result){
+        $database.insertObjects('contacts', arrContacts).then(function (result) {
             console.log(result);
-        }, function(error){
+        }, function (error) {
             console.log(error);
         });
     }
@@ -64,7 +64,29 @@ gmsApp.controller('gmsAppController', function ($rootScope, $scope, $compile, $d
     $scope.createDatabase = function () {
         $database.initialize().then(function (result) {
             $scope.database = result;
-            //$database.readData('contacts');
+            $scope.fetchTimeZones();
+        });
+    }
+
+    $scope.fetchTimeZones = function () {
+        $database.getAllRecords('timezones').then(function (result) {
+            if( result && result.length <= 0 )
+                $scope.upsertTimezones();
+            else
+                $scope.timezones = result;
+        }, function (error) {
+            console.log('Fetching timezones error: ' + error);
+        });
+
+
+    }
+    
+    $scope.upsertTimezones = function(){
+        var timezones = $object.getSampleTimezones();
+        var request = $database.updateObjects('timezones', timezones).then(function (result) {
+            $scope.fetchTimeZones();
+        }, function (error) {
+            alert.log('Timezones upsert error: ' + error);
         });
     }
 
@@ -116,7 +138,7 @@ gmsApp.controller('gmsAppController', function ($rootScope, $scope, $compile, $d
     $rootScope.coordinatedTime.dateTime = new Date();
     $scope.divCounter = 0;
 
-    $scope.addContact = function () {
+    $scope.addAttendee = function () {
         if ($scope.divCounter < $scope.maxAllowedDivCount) {
             var contact = $scope.contact($scope.divCounter);
             $scope.arrContacts.push(contact);
@@ -218,7 +240,7 @@ gmsApp.controller('gmsAppController', function ($rootScope, $scope, $compile, $d
         // timezone.Is_DST_Active__c = '';
         // timezone.Id = '';
     }
-    $rootScope.timezones = $scope.getTimeZones();
+    //$rootScope.timezones = $scope.timezones;
 });
 
 

@@ -40,4 +40,51 @@ objectProvider.service('$object', function () {
         }
         return guid();
     }
+    this.getSampleTimezones = function(){
+        var timezones = [];
+        var timezone = {};
+        timezone.Name = 'Eastern Standard Time / Eastern Time';
+        timezone.Short_Name__c = 'EST';
+        timezone.Region__c = 'New_York';
+        timezone.City_or_State__c = '';
+        timezone.Country__c = '';
+        timezone.GMT_Offset_in_Minutes__c = -300;
+        timezone.Type__c = 'Standard Time';
+        timezone.Id = 'a001000001dTgUl';
+        timezones.push(timezone);
+
+        timezone = {};
+        timezone.Name = 'Gulf Standard Time';
+        timezone.Short_Name__c = 'GST';
+        timezone.Region__c = 'Asia';
+        timezone.City_or_State__c = '';
+        timezone.Country__c = '';
+        timezone.GMT_Offset_in_Minutes__c = 240;
+        timezone.Type__c = 'Standard Time';
+        timezone.Id = 'a001000001dTgUq';
+        timezones.push(timezone);
+
+        timezone = {};
+        timezone.Name = 'India Standard Time / India Time';
+        timezone.Short_Name__c = 'IST';
+        timezone.Region__c = 'India';
+        timezone.City_or_State__c = '';
+        timezone.Country__c = '';
+        timezone.GMT_Offset_in_Minutes__c = 330;
+        timezone.Type__c = 'Standard Time';
+        timezone.Id = 'a001000001dTgUv';
+        timezones.push(timezone);
+
+        timezone = {};
+        timezone.Name = 'Pacific Standard Time / Pacific Time';
+        timezone.Short_Name__c = 'PST';
+        timezone.Region__c = 'America';
+        timezone.City_or_State__c = 'Tijuana';
+        timezone.Country__c = 'Mexico';
+        timezone.GMT_Offset_in_Minutes__c = -600;
+        timezone.Type__c = 'Daylight Saving Time';
+        timezone.Id = 'a001000001dTFrQ';
+        timezones.push(timezone);
+        return timezones;
+    }
 });

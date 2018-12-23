@@ -9,7 +9,7 @@ contactForm.directive('contactForm', function () {
     directive.controller = function ($scope, $rootScope, $compile) {
         $scope.isUpdatedByRoot = false;
 
-        $scope.timezones = $rootScope.timezones;
+        $scope.timezones = $scope.$parent.timezones;
         $scope.selectedTimeZoneId = angular.copy($scope.contactRecord.timezone.Id);
         $scope.localDateTime = {};
 
@@ -35,9 +35,9 @@ contactForm.directive('contactForm', function () {
         }, true);
 
         $scope.$watch('selectedTimeZoneId', function (newValue, oldValue) {
-            for (var index = 0; index < $rootScope.timezones.length; index++) {
-                if ($rootScope.timezones[index].Id === newValue) {
-                    $scope.contactRecord.timezone = $rootScope.timezones[index];
+            for (var index = 0; index < $scope.$parent.timezones.length; index++) {
+                if ($scope.$parent.timezones[index].Id === newValue) {
+                    $scope.contactRecord.timezone = $scope.$parent.timezones[index];
                     break;
                 }
             }

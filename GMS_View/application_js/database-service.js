@@ -1,64 +1,64 @@
-var databaseService = angular.module('dbService',[]);
-databaseService.service('$database',function($q){
-    var onerror = function(event){
+var databaseService = angular.module('dbService', []);
+databaseService.service('$database', function ($q) {
+    var onerror = function (event) {
         console.log(event);
     }
-    var onsuccess = function(event){
+    var onsuccess = function (event) {
         console.log(event);
     }
-    this.initialize = function(){
+    this.initialize = function () {
         var deferred = $q.defer();
-        var request = window.indexedDB.open('gms',3);
-        request.onerror = function(event){
+        var request = window.indexedDB.open('gms', 3);
+        request.onerror = function (event) {
             deferred.resolve(event);
         }
-        request.onsuccess = function(event){
+        request.onsuccess = function (event) {
             var db = event.target.result;
             deferred.resolve(db);
         }
-        request.onupgradeneeded = function(event){
+        request.onupgradeneeded = function (event) {
             var db = event.target.result;
-            
-            var contacts = db.createObjectStore('contacts',{ keyPath : 'External_Id__c' });
-            contacts.createIndex('Id','Id',{ unique : true });
-            contacts.createIndex('FirstName','FirstName',{ unique : false });
-            contacts.createIndex('LastName','LastName',{ unique : false });
-            contacts.createIndex('Timezone__c','Timezone__c',{ unique : false });
-            contacts.createIndex('Email','Email',{ unique : false });
-            contacts.createIndex('Account','Account',{ unique : false });
-            contacts.onerror = onerror;
-            contacts.onsuccess = onsuccess;
 
-            var accounts = db.createObjectStore('accounts',{ keyPath : 'SSO_User_Id__c' });
-            accounts.createIndex('Id','Id',{ unique : false });
-            accounts.createIndex('First_Name__c','First_Name__c',{ unique : false });
-            accounts.createIndex('Last_Name__c','Last_Name__c',{ unique : false });
-            accounts.createIndex('Timezone__c','Timezone__c',{ unique : false });
-            accounts.onerror = onerror;
-            accounts.onsuccess = onsuccess;
-            
+            var timezones = db.createObjectStore('timezones', { keyPath: 'Id' });
+            timezones.createIndex('Name', 'Name', { unique: false });
+            timezones.createIndex('City_or_State__c', 'City_or_State__c', { unique: false });
+            timezones.createIndex('Country__c', 'Country__c', { unique: false });
+            timezones.createIndex('DST_End_Date__c', 'DST_End_Date__c', { unique: false });
+            timezones.createIndex('DST_State_Date__c', 'DST_State_Date__c', { unique: false });
+            timezones.createIndex('DST_Timezone_Offset_in_Minutes__c', 'DST_Timezone_Offset_in_Minutes__c', { unique: false });
+            timezones.createIndex('GMT_Offset_in_Minutes__c', 'GMT_Offset_in_Minutes__c', { unique: false });
+            timezones.createIndex('Is_DST_Active__c', 'Is_DST_Active__c', { unique: false });
+            timezones.createIndex('Region__c', 'Region__c', { unique: false });
+            timezones.createIndex('Short_Name__c', 'Short_Name__c', { unique: false });
+            timezones.createIndex('Type__c', 'Type__c', { unique: false });
+
+            var attendeeGroups = db.createObjectStore('attendeeGroups', { keyPath: 'External_Id__c' });
+            attendeeGroups.createIndex('Id', 'Id', { unique: false });
+            attendeeGroups.createIndex('Attendees__c', 'Attendees__c', { unique: false });
+            attendeeGroups.createIndex('Name', 'Name', { unique: false });
+            attendeeGroups.createIndex('Account__c', 'Account__c', { unique: false });
+
             deferred.resolve(db);
         }
         return deferred.promise;
     }
-    this.insertObjects = function( apiName, lstObjects ){
-        try{
-            var deferred = $q.defer();
-            if( apiName ){
-                if( lstObjects && lstObjects.length > 0 ){
-                    this.initialize().then(function(result){
+    this.insertObjects = function (apiName, lstObjects) {
+        var deferred = $q.defer();
+        try {
+            if (apiName) {
+                if (lstObjects && lstObjects.length > 0) {
+                    this.initialize().then(function (result) {
                         var database = result;
                         var arrRequest = [];
                         var requestCount = 0;
-                        for( var index = 0; index < lstObjects.length; index ++ )
-                        {
-                            arrRequest[index] = database.transaction(apiName,'readwrite').objectStore(apiName).add(lstObjects[index]);
-                            arrRequest[index].onsuccess = function(event){
+                        for (var index = 0; index < lstObjects.length; index++) {
+                            arrRequest[index] = database.transaction(apiName, 'readwrite').objectStore(apiName).add(lstObjects[index]);
+                            arrRequest[index].onsuccess = function (event) {
                                 requestCount++;
-                                if( requestCount >= lstObjects.length )
+                                if (requestCount >= lstObjects.length)
                                     deferred.resolve(arrRequest);
                             }
-                            arrRequest[index].onerror = function(event){
+                            arrRequest[index].onerror = function (event) {
                                 deferred.reject(arrRequest);
                             }
                         }
@@ -66,16 +66,67 @@ databaseService.service('$database',function($q){
                     });
                 }
             }
-            return deferred.promise;
         }
-        catch(ex){
-            return ex;
+        catch (ex) {
+            deferred.reject(ex);
         }
+        return deferred.promise;
     }
-    this.generateUID = function(){
-        var guid = function(){
-            var s4 = function(){
-                return Math.floor((1+Math.random()) * 0x10000).toString(16).substring(1);
+    this.updateObjects = function (apiName, lstObjects) {
+        var deferred = $q.defer();
+        try {
+            if (apiName) {
+                if (lstObjects && lstObjects.length > 0) {
+                    this.initialize().then(function (result) {
+                        var database = result;
+                        var arrRequest = [];
+                        var requestCount = 0;
+                        for (var index = 0; index < lstObjects.length; index++) {
+                            arrRequest[index] = database.transaction(apiName, 'readwrite').objectStore(apiName).put(lstObjects[index]);
+                            arrRequest[index].onsuccess = function (event) {
+                                requestCount++;
+                                if (requestCount >= lstObjects.length)
+                                    deferred.resolve(arrRequest);
+                            }
+                            arrRequest[index].onerror = function (event) {
+                                deferred.reject(arrRequest);
+                            }
+                        }
+
+                    });
+                }
+            }
+        }
+        catch (ex) {
+            deferred.reject(ex);
+        }
+        return deferred.promise;
+    }
+    this.getAllRecords = function(apiName) {
+        var deferred = $q.defer();
+        try {
+            if( apiName ){
+                this.initialize().then(function(result){
+                    var database = result;
+                    var request = database.transaction( apiName ).objectStore( apiName ).getAll();
+                    request.onerror = function(event){
+                        deferred.reject(event);
+                    }
+                    request.onsuccess = function(event){
+                        deferred.resolve(event.target.result);
+                    }
+                });
+            }
+        }
+        catch (ex) {
+            deferred.reject(ex);
+        }
+        return deferred.promise;
+    }
+    this.generateUID = function () {
+        var guid = function () {
+            var s4 = function () {
+                return Math.floor((1 + Math.random()) * 0x10000).toString(16).substring(1);
             }
             return s4() + s4() + '-' + s4() + '-' + s4() + '-' + s4() + '-' + s4() + s4() + s4();
         }
